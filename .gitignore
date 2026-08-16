@@ -28,3 +28,9 @@ web-ext.config.ts
 # for the api key 
 .env
 backend/.env
+# Python
+backend/venv/
+backend/.env
+**/__pycache__/
+*.pyc
+.env
