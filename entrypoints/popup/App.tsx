@@ -1,35 +1,56 @@
-import { useState } from 'react';
-import reactLogo from '@/assets/react.svg';
-import wxtLogo from '/wxt.svg';
+import { useState, useEffect } from 'react';
 import './App.css';
 
-function App() {
-  const [count, setCount] = useState(0);
+export default function App() {
+  const [isActive, setIsActive] = useState(false);
+  const [pageInfo, setPageInfo] = useState<{ title: string; readingTime: number } | null>(null);
+
+  // Send a message to the active tab's content script
+  const toggleMagicMode = async () => {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.id) return;
+
+    const nextState = !isActive;
+    setIsActive(nextState);
+
+    chrome.tabs.sendMessage(
+      tab.id,
+      { type: 'TOGGLE_MAGIC_MODE', enabled: nextState },
+      (response: { success?: boolean; title?: string; readingTime?: number }) => {
+        if (response?.success) {
+          setPageInfo({
+            title: response.title || tab.title || 'Unknown Page',
+            readingTime: response.readingTime || 3,
+          });
+        }
+      }
+    );
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://wxt.dev" target="_blank">
-          <img src={wxtLogo} className="logo" alt="WXT logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>WXT + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+    <div className="popup-container">
+      <header className="popup-header">
+        <div className="logo-badge">✨ Magic UI</div>
+        <span className="version-tag">v0.1.0</span>
+      </header>
+
+      <main className="popup-body">
+        <p className="description">Simplify and declutter this webpage.</p>
+
+        <button
+          className={`action-btn ${isActive ? 'active' : ''}`}
+          onClick={toggleMagicMode}
+        >
+          {isActive ? 'Restore Original Page' : 'Turn On Magic View'}
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the WXT and React logos to learn more
-      </p>
-    </>
+
+        {pageInfo && isActive && (
+          <div className="info-card">
+            <p className="info-title">📄 {pageInfo.title.slice(0, 35)}...</p>
+            <span className="info-meta">⏱ ~{pageInfo.readingTime} min read</span>
+          </div>
+        )}
+      </main>
+    </div>
   );
 }
-
-export default App;

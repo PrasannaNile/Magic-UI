@@ -25,6 +25,9 @@ web-ext.config.ts
 *.sln
 *.sw?
 
+# for the api key 
+.env
+backend/.env
 # Python
 backend/venv/
 backend/.env
