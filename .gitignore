@@ -24,3 +24,7 @@ web-ext.config.ts
 *.njsproj
 *.sln
 *.sw?
+
+# for the api key 
+.env
+backend/.env
